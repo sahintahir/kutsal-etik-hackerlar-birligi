@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kutsal Etik Hackerlar Birliği</title>
+<style>
+body{margin:0;font-family:Arial;background:#f4f4f4}
+header{background:#c40000;color:#fff;padding:15px;text-align:center}
+section{padding:15px}
+.card{background:#fff;border:1px solid #c40000;padding:15px;margin-bottom:15px}
+button{padding:8px 14px;border:none;background:#c40000;color:#fff;border-radius:4px;cursor:pointer}
+input{padding:8px;margin:6px 0;width:100%}
+.hidden{display:none}
+#chatBox{border:1px solid #c40000;height:220px;overflow-y:auto;padding:10px;margin-bottom:10px}
+.msg{margin-bottom:6px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center}
+.modal-content{background:#fff;padding:20px;max-width:520px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🇹🇷 Kutsal Etik Hackerlar Birliği</h1>
+<p>Türkiye • İslam • Etik Hackerlık</p>
+</header>
+
+<!-- KURALLAR -->
+<div class="modal" id="rulesModal">
+  <div class="modal-content">
+    <h3>📜 Birlik Kuralları</h3>
+    <ul>
+      <li>❌ Küfür / Hakaret YASAK</li>
+      <li>❌ Terör, Fetö, illegal konular ASLA</li>
+      <li>❌ Siyah şapka hackerlık YASAK</li>
+      <li>🛡️ 3 ihlal = OTOMATİK BAN</li>
+      <li>👑 Yönetim kararları kesindir</li>
+    </ul>
+    <button onclick="acceptRules()">Kabul Ediyorum</button>
+  </div>
+</div>
+
+<section id="login">
+
+<div class="card">
+<h3>➕ Üye Ol / Üye Girişi</h3>
+<input id="nameInput" placeholder="Ad">
+<input id="surnameInput" placeholder="Soyad">
+<button onclick="memberJoin()">Üye Ol / Giriş Yap</button>
+</div>
+
+<div class="card">
+<h3>👑 Yönetici Girişi</h3>
+<input id="adminUser" placeholder="Kullanıcı adı">
+<input id="adminPass" type="password" placeholder="Şifre">
+<button onclick="adminLogin()">Yönetici Girişi</button>
+</div>
+
+</section>
+
+<section id="panel" class="hidden">
+<h3>Hoş geldin <span id="roleLabel"></span></h3>
+
+<div id="chatBox"></div>
+<input id="msgInput" placeholder="Mesaj yaz">
+<button onclick="sendMsg()">Gönder</button>
+
+<div id="adminPanel" class="hidden">
+<hr>
+<h4>👁️ Üye Listesi</h4>
+<ul id="memberList"></ul>
+
+<div id="presidentOnly" class="hidden">
+  <h4>🚪 Üye Çıkar (Sadece Başkan)</h4>
+  <input id="kickUser" placeholder="Ad Soyad">
+  <button onclick="kickUserFn()">Üyeyi Çıkar</button>
+</div>
+</div>
+</section>
+
+<script>
+/* === YÖNETİCİLER === */
+const PRESIDENT={u:"baskan",p:"TCS-ETIK-2026!"};
+const VP={u:"baskan_yardimcisi",p:"IEY-ETIK-2026!"};
+
+/* === VERİLER === */
+let users=JSON.parse(localStorage.getItem("users"))||["İlhan Efe Yılmaz"];
+let messages=JSON.parse(localStorage.getItem("msgs"))||[];
+let strikes={};
+let bans=[];
+const bannedWords=["amk","aq","küfür","fetö","terör","isis","virüs","blackhat","siyah şapka"];
+
+/* === KURALLAR === */
+function acceptRules(){rulesModal.style.display="none";}
+
+/* === ÜYE OL / GİRİŞ === */
+function memberJoin(){
+  const n=nameInput.value.trim();
+  const s=surnameInput.value.trim();
+  if(!n||!s) return alert("Ad ve soyad zorunlu");
+  const full=`${n} ${s}`;
+  if(bans.includes(full)) return alert("Banlısın");
+  if(!users.includes(full)){
+    users.push(full);
+    localStorage.setItem("users",JSON.stringify(users));
+  }
+  openPanel(full,false,false);
+}
+
+/* === YÖNETİCİ GİRİŞ === */
+function adminLogin(){
+  const u=adminUser.value.trim();
+  const p=adminPass.value;
+  if(u===PRESIDENT.u && p===PRESIDENT.p) return openPanel("👑 Başkan",true,true);
+  if(u===VP.u && p===VP.p) return openPanel("🏛 Başkan Yardımcısı",true,false);
+  alert("Yönetici bilgileri yanlış");
+}
+
+/* === PANEL === */
+function openPanel(label,isAdmin,isPresident){
+  login.classList.add("hidden");
+  panel.classList.remove("hidden");
+  roleLabel.textContent=label;
+  loadMsgs();
+  if(isAdmin){
+    adminPanel.classList.remove("hidden");
+    loadMembers();
+    if(isPresident) presidentOnly.classList.remove("hidden");
+  }
+}
+
+/* === SOHBET === */
+function sendMsg(){
+  const t=msgInput.value.trim();
+  if(!t) return;
+  const lower=t.toLowerCase();
+  for(let w of bannedWords){
+    if(lower.includes(w)){
+      alert("🚫 Kural ihlali");
+      return;
+    }
+  }
+  messages.push({u:roleLabel.textContent,t});
+  localStorage.setItem("msgs",JSON.stringify(messages));
+  msgInput.value="";
+  loadMsgs();
+}
+
+function loadMsgs(){
+  chatBox.innerHTML="";
+  messages.forEach(m=>{
+    const d=document.createElement("div");
+    d.className="msg";
+    d.innerHTML=`<b>${m.u}:</b> ${m.t}`;
+    chatBox.appendChild(d);
+  });
+  chatBox.scrollTop=chatBox.scrollHeight;
+}
+
+/* === YÖNETİM === */
+function loadMembers(){
+  memberList.innerHTML="";
+  users.forEach(u=>{
+    const li=document.createElement("li");
+    li.textContent=u;
+    memberList.appendChild(li);
+  });
+}
+
+function kickUserFn(){
+  const u=kickUser.value.trim();
+  users=users.filter(x=>x!==u);
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("Üye çıkarıldı");
+  loadMembers();
+}
+</script>
+
+</body>
+</html>
