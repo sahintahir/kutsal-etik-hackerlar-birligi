@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kutsal Etik Hackerlar Birliği | Topluluk Merkezi</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#0b0b0b;
+  color:#f5f5f5;
+}
+header{
+  background:#b80000;
+  color:white;
+  padding:22px;
+  text-align:center;
+}
+header span{color:#ffffff;font-weight:bold}
+
+section{padding:20px}
+
+.card{
+  background:#111;
+  border:2px solid #b80000;
+  padding:16px;
+  margin-bottom:16px;
+  border-radius:10px;
+}
+
+h2,h3{color:#ffffff}
+
+button{
+  background:#b80000;
+  color:white;
+  border:none;
+  padding:10px 18px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+}
+button:hover{opacity:.85}
+
+input,select{
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  background:#000;
+  color:#ffffff;
+  border:1px solid #444;
+  border-radius:4px;
+}
+
+.hidden{display:none}
+
+.stat{
+  font-size:14px;
+  margin:6px 0;
+  color:#00ff88;
+}
+
+footer{
+  text-align:center;
+  padding:12px;
+  font-size:13px;
+  color:#ccc;
+  border-top:1px solid #333;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🛡️ Kutsal Etik Hackerlar Birliği</h1>
+<p><span>Türkiye</span> • <span>İslam</span> • <span>Etik Hackerlık</span></p>
+</header>
+
+<section id="login">
+
+<div class="card">
+<h3>➕ Üye Girişi</h3>
+<input id="nameInput" placeholder="Ad">
+<input id="surnameInput" placeholder="Soyad">
+<button onclick="memberJoin()">Giriş Yap</button>
+</div>
+
+<div class="card">
+<h3>👑 Yönetici Girişi</h3>
+<input id="adminUser" placeholder="Kullanıcı adı">
+<input id="adminPass" type="password" placeholder="Şifre">
+<button onclick="adminLogin()">Yönetici Girişi</button>
+</div>
+
+</section>
+
+<section id="panel" class="hidden">
+
+<div class="card">
+<h2>Hoş geldin: <span id="roleLabel"></span></h2>
+</div>
+
+<div class="card">
+<h3>📊 Topluluk İstatistikleri</h3>
+<div class="stat">👥 Toplam Üye: <span id="statUsers"></span></div>
+<div class="stat">🟢 Online Ziyaretçi: <span id="statOnline"></span></div>
+<div class="stat">🧠 Aktif Misyon: Etik Savunma & Bilinç</div>
+</div>
+
+<div class="card">
+<h3>🧠 Görev / Misyonlar</h3>
+<ul>
+  <li>✔️ Etik hackerlık bilincini yaymak</li>
+  <li>✔️ Siyah şapka ile mücadele</li>
+  <li>✔️ Gençleri bilinçlendirmek</li>
+  <li>✔️ Dijital ümmeti korumak</li>
+</ul>
+</div>
+
+<div id="adminPanel" class="card hidden">
+<h3>👁️ Üye Yönetimi</h3>
+<select id="kickSelect"></select>
+<button onclick="kickUser()">Üyeyi Çıkar</button>
+</div>
+
+<div class="card">
+<h3>🧾 Sistem Logları</h3>
+<ul id="logBox"></ul>
+</div>
+
+</section>
+
+<footer>
+⚔️ Etik hacker; temizdir, adildir, güçlüdür • Siyah şapkadan üstündür
+</footer>
+
+<script>
+const PRESIDENT={u:"baskan",p:"TCS-ETIK-2026!"};
+const VP={u:"baskan_yardimcisi",p:"IEY-ETIK-2026!"};
+
+let users=JSON.parse(localStorage.getItem("users"))||["İlhan Efe Yılmaz"];
+let logs=JSON.parse(localStorage.getItem("logs"))||[];
+
+function log(msg){
+  logs.push(new Date().toLocaleTimeString()+" - "+msg);
+  localStorage.setItem("logs",JSON.stringify(logs));
+  loadLogs();
+}
+
+function memberJoin(){
+  const full=nameInput.value.trim()+" "+surnameInput.value.trim();
+  if(full.trim().length<5) return alert("Ad soyad gir");
+  if(!users.includes(full)){
+    users.push(full);
+    localStorage.setItem("users",JSON.stringify(users));
+  }
+  log("Üye girişi: "+full);
+  openPanel(full,false);
+}
+
+function adminLogin(){
+  if(adminUser.value===PRESIDENT.u && adminPass.value===PRESIDENT.p){
+    log("Başkan giriş yaptı");
+    return openPanel("👑 Başkan Tahir Can Şahin",true);
+  }
+  if(adminUser.value===VP.u && adminPass.value===VP.p){
+    log("Başkan Yardımcısı giriş yaptı");
+    return openPanel("🏛 Başkan Yardımcısı İlhan Efe Yılmaz",true);
+  }
+  alert("Hatalı giriş");
+}
+
+function openPanel(label,isAdmin){
+  login.classList.add("hidden");
+  panel.classList.remove("hidden");
+  roleLabel.textContent=label;
+  statUsers.textContent=users.length;
+  statOnline.textContent=Math.floor(Math.random()*5)+1;
+  if(isAdmin){
+    adminPanel.classList.remove("hidden");
+    loadKickList();
+  }
+  loadLogs();
+}
+
+function loadKickList(){
+  kickSelect.innerHTML="";
+  users.forEach(u=>{
+    const o=document.createElement("option");
+    o.textContent=u;
+    kickSelect.appendChild(o);
+  });
+}
+
+function kickUser(){
+  const u=kickSelect.value;
+  users=users.filter(x=>x!==u);
+  localStorage.setItem("users",JSON.stringify(users));
+  log("Üye çıkarıldı: "+u);
+  loadKickList();
+  statUsers.textContent=users.length;
+}
+
+function loadLogs(){
+  logBox.innerHTML="";
+  logs.slice(-10).forEach(l=>{
+    const li=document.createElement("li");
+    li.textContent=l;
+    logBox.appendChild(li);
+  });
+}
+</script>
+
+<!-- TAWK.TO CANLI SOHBET -->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/697bd01d4e1d461c32666edc/1jg5q9t83';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+
+</body>
+</html>
