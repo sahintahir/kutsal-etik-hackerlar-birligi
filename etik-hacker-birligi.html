@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kutsal Etik Hackerlar Birliği</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#000;
+  color:#fff;
+}
+header{
+  background:linear-gradient(90deg,#000,#c00,#fff,#c00);
+  color:#000;
+  padding:20px;
+  text-align:center;
+}
+section{padding:20px}
+.card{
+  background:#111;
+  border:2px solid #c00;
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:15px;
+}
+input,button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:6px;
+  border:none;
+}
+input{background:#000;color:#0f0;border:1px solid #333}
+button{
+  background:#c00;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:hover{opacity:.85}
+.hidden{display:none}
+.badge{background:#c00;padding:4px 8px;border-radius:6px;font-size:12px}
+footer{text-align:center;color:#aaa;font-size:13px;padding:15px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🛡️ Kutsal Etik Hackerlar Birliği</h1>
+<p>Türkiye • İslam • Etik Hackerlık</p>
+<strong>👑 Başkan: Tahir Can Şahin</strong><br>
+<strong>🛡️ Başkan Yardımcısı: İlhan Efe Yılmaz</strong>
+</header>
+
+<section id="login">
+
+<div class="card">
+<h3>➕ Üye Girişi</h3>
+<input id="name" placeholder="Ad Soyad">
+<button onclick="memberLogin()">Giriş Yap</button>
+</div>
+
+<div class="card">
+<h3>👑 Yönetici Girişi</h3>
+<input id="adminUser" placeholder="Kullanıcı adı">
+<input id="adminPass" type="password" placeholder="Şifre">
+<button onclick="adminLogin()">Yönetici Girişi</button>
+</div>
+
+</section>
+
+<section id="panel" class="hidden">
+
+<div class="card">
+<h2>Hoş geldin: <span id="role"></span></h2>
+<p>🟢 Online Ziyaretçi: <span id="online">1</span></p>
+<p>🧠 Aktif Misyon: <span class="badge">Etik Savunma</span></p>
+</div>
+
+<div class="card">
+<h3>👥 Üyeler</h3>
+<ul id="memberList"></ul>
+</div>
+
+<div class="card hidden" id="adminPanel">
+<h3>🚪 Üye Çıkar (Yönetici)</h3>
+<select id="kickSelect"></select>
+<button onclick="kick()">Üyeyi Çıkar</button>
+</div>
+
+</section>
+
+<footer>
+⚔️ Etik hacker temizdir • Adildir • Güçlüdür  
+</footer>
+
+<!-- ✅ GERÇEK CANLI SOHBET – TAWK.TO -->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/697bd01d4e1d461c32666edc/1jg5q9t83';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+
+<script>
+/* YÖNETİCİLER */
+const PRESIDENT={u:"baskan",p:"TCS-ETIK-2026!"};
+const VP={u:"baskan_yardimcisi",p:"IEY-ETIK-2026!"};
+
+let users=JSON.parse(localStorage.getItem("users"))||[
+"Tahir Can Şahin",
+"İlhan Efe Yılmaz"
+];
+
+function memberLogin(){
+  const n=name.value.trim();
+  if(n.length<3) return alert("Ad soyad gir");
+  if(!users.includes(n)){
+    users.push(n);
+    localStorage.setItem("users",JSON.stringify(users));
+  }
+  openPanel(n,false);
+}
+
+function adminLogin(){
+  if(adminUser.value===PRESIDENT.u && adminPass.value===PRESIDENT.p)
+    return openPanel("👑 Başkan Tahir Can Şahin",true);
+  if(adminUser.value===VP.u && adminPass.value===VP.p)
+    return openPanel("🛡️ Başkan Yardımcısı İlhan Efe Yılmaz",true);
+  alert("Hatalı giriş");
+}
+
+function openPanel(label,isAdmin){
+  login.classList.add("hidden");
+  panel.classList.remove("hidden");
+  role.textContent=label;
+  loadMembers();
+  if(isAdmin) adminPanel.classList.remove("hidden");
+}
+
+/* ÜYELER */
+function loadMembers(){
+  memberList.innerHTML="";
+  kickSelect.innerHTML="";
+  users.forEach(u=>{
+    const li=document.createElement("li");
+    li.textContent=u;
+    memberList.appendChild(li);
+
+    const o=document.createElement("option");
+    o.textContent=u;
+    kickSelect.appendChild(o);
+  });
+}
+
+function kick(){
+  const u=kickSelect.value;
+  users=users.filter(x=>x!==u);
+  localStorage.setItem("users",JSON.stringify(users));
+  loadMembers();
+  alert(u+" çıkarıldı");
+}
+
+/* Online sayaç */
+let c=localStorage.getItem("online")||0;
+c++;
+localStorage.setItem("online",c);
+online.innerText=c;
+</script>
+
+</body>
+</html>
