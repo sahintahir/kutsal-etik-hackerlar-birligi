@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kutsal Etik Hackerlar Birliği</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{margin:0;font-family:Arial;background:#000;color:#fff}
+header{background:linear-gradient(90deg,#000,#0f0,#fff,#c00);color:#000;padding:20px;text-align:center}
+section{padding:20px;border-bottom:1px solid #222}
+h2{color:#0f0}
+.card{background:#111;padding:15px;border-radius:10px;margin-bottom:15px}
+.badge{color:#fff;background:#c00;padding:4px 8px;border-radius:5px;font-size:12px}
+.log{font-family:monospace;color:#0f0}
+footer{text-align:center;padding:15px;font-size:13px;color:#aaa}
+button{background:#c00;color:#fff;border:none;padding:8px 14px;border-radius:5px;cursor:pointer;margin-top:5px}
+input,select{width:100%;padding:8px;margin:6px 0;background:#000;color:#0f0;border:1px solid #444;border-radius:4px}
+.hidden{display:none}
+#chatBox{border:1px solid #c00;height:220px;overflow-y:auto;padding:10px;margin-bottom:10px;background:#000}
+.msg{margin-bottom:6px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🛡️ Kutsal Etik Hackerlar Birliği</h1>
+<p>Türkiye • İslam • Etik Hackerlık</p>
+<strong>👑 Başkan: Tahir Can Şahin</strong><br>
+<strong>🛡️ Başkan Yardımcısı & İlk Üye: İlhan Efe Yılmaz</strong>
+</header>
+
+<section id="login">
+<div class="card">
+<h3>➕ Üye Girişi</h3>
+<input id="nameInput" placeholder="Ad">
+<input id="surnameInput" placeholder="Soyad">
+<button onclick="memberJoin()">Giriş Yap</button>
+</div>
+
+<div class="card">
+<h3>👑 Yönetici Girişi</h3>
+<input id="adminUser" placeholder="Kullanıcı adı">
+<input id="adminPass" type="password" placeholder="Şifre">
+<button onclick="adminLogin()">Yönetici Girişi</button>
+</div>
+</section>
+
+<section id="panel" class="hidden">
+<h2>Hoş geldin: <span id="roleLabel"></span></h2>
+
+<div class="card">
+<h3>💬 Birlik Sohbeti</h3>
+<div id="chatBox"></div>
+<input id="msgInput" placeholder="Mesaj yaz">
+<button onclick="sendMsg()">Gönder</button>
+</div>
+
+<div id="adminPanel" class="card hidden">
+<h3>👁️ Üye Yönetimi</h3>
+<select id="kickSelect"></select>
+<button onclick="kickUser()">Üyeyi Çıkar</button>
+</div>
+
+<section>
+<h3>📊 Topluluk İstatistikleri</h3>
+<div class="card">
+👥 Toplam Üye: <strong id="totalUsers">1</strong><br>
+🟢 Online Ziyaretçi: <strong id="online">1</strong><br>
+🧠 Aktif Misyon: <span class="badge">Etik Savunma</span>
+</div>
+</section>
+
+<section>
+<h3>🧠 Görev / Misyonlar</h3>
+<div class="card">
+✔️ Etik hackerlık bilincini yaymak<br>
+✔️ Siyah şapka ile mücadele<br>
+✔️ Gençleri bilinçlendirmek<br>
+✔️ Dijital ümmeti korumak
+</div>
+</section>
+
+<section>
+<h3>🧾 Sistem Logları</h3>
+<div class="card log" id="logs">
+[23:13:43] Başkan giriş yaptı<br>
+[23:14:47] Sistem aktif<br>
+</div>
+</section>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/697bd01d4e1d461c32666edc/1jg5q9t83';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
+
+<script>
+/* ===== Veri ve giriş sistemi ===== */
+const PRESIDENT={u:"baskan",p:"Tahir@2026"};
+const VP={u:"baskan_yardimcisi",p:"Efe@2026"};
+let users=JSON.parse(localStorage.getItem("users"))||["İlhan Efe Yılmaz"];
+let messages=JSON.parse(localStorage.getItem("msgs"))||[];
+
+function memberJoin(){
+  const full=nameInput.value.trim()+" "+surnameInput.value.trim();
+  if(full.trim().length<5){alert("Ad ve soyad gir");return;}
+  if(!users.includes(full)){
+    users.push(full);
+    localStorage.setItem("users",JSON.stringify(users));
+    updateStats();
+  }
+  openPanel(full,false);
+  addLog(full+" giriş yaptı");
+}
+
+function adminLogin(){
+  const u=adminUser.value.trim();
+  const p=adminPass.value;
+  if(u===PRESIDENT.u && p===PRESIDENT.p) return openPanel("👑 Başkan Tahir Can Şahin",true,true);
+  if(u===VP.u && p===VP.p) return openPanel("🛡️ Başkan Yardımcısı İlhan Efe Yılmaz",true,false);
+  alert("Hatalı yönetici girişi");
+}
+
+function openPanel(label,isAdmin,isPresident){
+  login.classList.add("hidden");
+  panel.classList.remove("hidden");
+  roleLabel.textContent=label;
+  loadMsgs();
+  updateStats();
+  if(isAdmin){
+    adminPanel.classList.remove("hidden");
+    loadKickList();
+  }
+}
+
+/* ===== Sohbet ===== */
+function sendMsg(){
+  const t=msgInput.value.trim();
+  if(!t) return;
+  messages.push({u:roleLabel.textContent,t});
+  localStorage.setItem("msgs",JSON.stringify(messages));
+  msgInput.value="";
+  loadMsgs();
+}
+function loadMsgs(){
+  chatBox.innerHTML="";
+  messages.forEach(m=>{
+    const d=document.createElement("div");
+    d.className="msg";
+    d.innerHTML=`<b>${m.u}:</b> ${m.t}`;
+    chatBox.appendChild(d);
+  });
+  chatBox.scrollTop=chatBox.scrollHeight;
+}
+
+/* ===== Üye yönetimi ===== */
+function loadKickList(){
+  kickSelect.innerHTML="";
+  users.forEach(u=>{
+    const o=document.createElement("option");
+    o.textContent=u;
+    kickSelect.appendChild(o);
+  });
+}
+function kickUser(){
+  const u=kickSelect.value;
+  users=users.filter(x=>x!==u);
+  localStorage.setItem("users",JSON.stringify(users));
+  loadKickList();
+  updateStats();
+  addLog(u+" çıkarıldı");
+  alert(u+" çıkarıldı");
+}
+
+/* ===== Yardımcı ===== */
+function updateStats(){
+  totalUsers.innerText=users.length;
+  online.innerText=parseInt(localStorage.getItem("onlineCount")||1);
+}
+
+function addLog(text){
+  const d=new Date();
+  logs.innerHTML+=`[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}] ${text}<br>`;
+}
+
+/* ===== Online sayaç ===== */
+let count = localStorage.getItem("onlineCount")||1;
+count++;
+localStorage.setItem("onlineCount",count);
+online.innerText=count;
+</script>
+
+</body>
+</html>
