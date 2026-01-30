@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Topluluk Merkezi • Kutsal Etik Hackerlar Birliği</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0b0b0b;
+  color:#eaeaea;
+}
+header{
+  background:#b80000;
+  padding:20px;
+  text-align:center;
+}
+header span{color:#00ff88}
+section{padding:20px}
+.card{
+  background:#111;
+  border:2px solid #b80000;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:8px;
+}
+button{
+  background:#b80000;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+}
+button:hover{opacity:.85}
+input, textarea, select{
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  background:#000;
+  color:#00ff88;
+  border:1px solid #444;
+  border-radius:4px;
+}
+.hidden{display:none}
+ul{padding-left:18px}
+footer{
+  text-align:center;
+  padding:10px;
+  font-size:12px;
+  color:#aaa;
+}
+.badge{
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:6px;
+  background:#00ff88;
+  color:#000;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🛡️ Kutsal Etik Hackerlar Birliği</h1>
+<p><span>Türkiye</span> • <span>İslam</span> • Etik Hackerlık</p>
+</header>
+
+<section id="login">
+<div class="card">
+<h3>➕ Üye Girişi</h3>
+<input id="nameInput" placeholder="Ad">
+<input id="surnameInput" placeholder="Soyad">
+<button onclick="memberJoin()">Giriş Yap</button>
+</div>
+
+<div class="card">
+<h3>👑 Yönetici Girişi</h3>
+<input id="adminUser" placeholder="Kullanıcı adı">
+<input id="adminPass" type="password" placeholder="Şifre">
+<button onclick="adminLogin()">Yönetici Girişi</button>
+</div>
+</section>
+
+<section id="panel" class="hidden">
+
+<h2>Hoş geldin: <span id="roleLabel"></span></h2>
+
+<div class="card">
+<h3>🟢 Online Üyeler</h3>
+<ul id="onlineList"></ul>
+</div>
+
+<div class="card">
+<h3>📊 Topluluk İstatistikleri</h3>
+<p>Toplam Üye: <span id="statMembers"></span></p>
+<p>Online: <span id="statOnline"></span></p>
+<p>Toplam Görev: <span id="statMissions"></span></p>
+</div>
+
+<div class="card">
+<h3>🧠 Görev / Misyonlar</h3>
+<ul id="missionList"></ul>
+</div>
+
+<div class="card">
+<h3>📜 Birlik Kuralları</h3>
+<ul id="rulesList"></ul>
+</div>
+
+<div id="adminPanel" class="card hidden">
+<h3>👑 Yönetici Paneli</h3>
+
+<h4>➕ Kural Ekle</h4>
+<input id="ruleInput" placeholder="Yeni kural">
+<button onclick="addRule()">Ekle</button>
+
+<h4>🎯 Görev Ekle</h4>
+<input id="missionInput" placeholder="Yeni görev">
+<button onclick="addMission()">Ekle</button>
+
+<h4>🧾 Loglar</h4>
+<ul id="logList"></ul>
+
+</div>
+
+</section>
+
+<footer>
+⚔️ Etik hacker siyah şapkadan üstündür • Adildir • Güçlüdür
+</footer>
+
+<script>
+const PRESIDENT={u:"baskan",p:"TCS-ETIK-2026!"};
+const VP={u:"baskan_yardimcisi",p:"IEY-ETIK-2026!"};
+
+let users=JSON.parse(localStorage.getItem("users"))||[];
+let rules=JSON.parse(localStorage.getItem("rules"))||["Etik dışı işlem yasaktır"];
+let missions=JSON.parse(localStorage.getItem("missions"))||["Topluluk ruhunu koru"];
+let logs=JSON.parse(localStorage.getItem("logs"))||[];
+let online=JSON.parse(localStorage.getItem("online"))||[];
+
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+function log(text){
+  logs.push(new Date().toLocaleString()+" • "+text);
+  save("logs",logs);
+}
+
+function memberJoin(){
+  const full=nameInput.value.trim()+" "+surnameInput.value.trim();
+  if(full.trim().length<5) return alert("Ad soyad gir");
+  if(!users.includes(full)) users.push(full);
+  if(!online.includes(full)) online.push(full);
+  save("users",users); save("online",online);
+  log(full+" giriş yaptı");
+  openPanel(full,false);
+}
+
+function adminLogin(){
+  if(adminUser.value===PRESIDENT.u && adminPass.value===PRESIDENT.p)
+    return openPanel("👑 Başkan Tahir Can Şahin",true);
+  if(adminUser.value===VP.u && adminPass.value===VP.p)
+    return openPanel("🏛 Başkan Yardımcısı İlhan Efe Yılmaz",true);
+  alert("Hatalı giriş");
+}
+
+function openPanel(label,isAdmin){
+  login.classList.add("hidden");
+  panel.classList.remove("hidden");
+  roleLabel.textContent=label;
+  if(!online.includes(label)) online.push(label);
+  save("online",online);
+  refresh();
+  if(isAdmin) adminPanel.classList.remove("hidden");
+}
+
+function refresh(){
+  onlineList.innerHTML="";
+  online.forEach(u=>{
+    const li=document.createElement("li");
+    li.innerHTML=u+" <span class='badge'>online</span>";
+    onlineList.appendChild(li);
+  });
+
+  rulesList.innerHTML="";
+  rules.forEach(r=>{
+    const li=document.createElement("li"); li.textContent=r;
+    rulesList.appendChild(li);
+  });
+
+  missionList.innerHTML="";
+  missions.forEach(m=>{
+    const li=document.createElement("li"); li.textContent="🎯 "+m;
+    missionList.appendChild(li);
+  });
+
+  logList.innerHTML="";
+  logs.slice(-10).forEach(l=>{
+    const li=document.createElement("li"); li.textContent=l;
+    logList.appendChild(li);
+  });
+
+  statMembers.textContent=users.length;
+  statOnline.textContent=online.length;
+  statMissions.textContent=missions.length;
+}
+
+function addRule(){
+  if(!ruleInput.value) return;
+  rules.push(ruleInput.value);
+  save("rules",rules);
+  log("Yeni kural eklendi");
+  ruleInput.value="";
+  refresh();
+}
+
+function addMission(){
+  if(!missionInput.value) return;
+  missions.push(missionInput.value);
+  save("missions",missions);
+  log("Yeni görev eklendi");
+  missionInput.value="";
+  refresh();
+}
+</script>
+
+<!-- Tawk.to Canlı Sohbet -->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/697bd01d4e1d461c32666edc/1jg5q9t83';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+
+</body>
+</html>
